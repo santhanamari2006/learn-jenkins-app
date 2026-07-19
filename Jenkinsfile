@@ -75,12 +75,13 @@ pipeline {
                     image 'node:18-alpine'
                     reuseNode true
                 }
-                steps {
-                    sh '''
-                      npm install netlify-cli
-                      node_modules/.bin/netlify netlify --version
-                    '''
-                }
+            }
+
+            steps {
+                sh '''
+                    npm install netlify-cli
+                    node_modules/.bin/netlify --version
+                '''
             }
         }
     }
