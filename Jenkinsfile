@@ -4,6 +4,7 @@ pipeline {
     environment {
         NETLIFY_SITE_ID = '720a814a-d546-4f00-83a4-ee3232781752'
         NETLIFY_AUTH_TOKEN = credentials('netify-token')
+        REACT_APP_VERSION = '1.2.3'
     }
 
     stages {
@@ -129,15 +130,6 @@ pipeline {
                         reportName: 'Staging E2E',
                         useWrapperFileDirectly: true
                     ])
-                }
-            }
-        }
-
-        stage('Approval') {
-            steps {
-                timeout(time: 15, unit: 'MINUTES') {
-                    input message: 'Do you wish to deploy to production?',
-                          ok: 'Yes, I am sure!'
                 }
             }
         }
