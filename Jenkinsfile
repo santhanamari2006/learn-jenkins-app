@@ -3,19 +3,20 @@ pipeline {
 
     environment {
         NETLIFY_SITE_ID = '720a814a-d546-4f00-83a4-ee3232781752'
-        NETLIFY_AUTH_TOKEN = credentials('netify-token')  
+        NETLIFY_AUTH_TOKEN = credentials('netify-token')
     }
-    
+
     stages {
+
         stage('Build') {
-            agent{
-                docker{
+            agent {
+                docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
             steps {
-                 sh '''
+                sh '''
                     echo 'Small Change'
                     ls -la
                     node --version
@@ -23,12 +24,13 @@ pipeline {
                     npm ci
                     npm run build
                     ls -la
-                 '''
+                '''
             }
         }
 
-        stage('Tests'){
+        stage('Tests') {
             parallel {
+
                 stage('Unit tests') {
                     agent {
                         docker {
@@ -36,18 +38,27 @@ pipeline {
                             reuseNode true
                         }
                     }
+
                     steps {
                         sh '''
-                        #test -f build/index.html
-                        npm test
+                            npm test
                         '''
                     }
+
                     post {
-                            always {
-                                junit 'jest-results/junit.xml'
-                                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
-                            }
+                        always {
+                            junit 'jest-results/junit.xml'
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: false,
+                                keepAll: false,
+                                reportDir: 'playwright-report',
+                                reportFiles: 'index.html',
+                                reportName: 'Playwright HTML Report',
+                                useWrapperFileDirectly: true
+                            ])
                         }
+                    }
                 }
 
                 stage('E2E') {
@@ -60,43 +71,59 @@ pipeline {
 
                     steps {
                         sh '''
-                        npm install serve
-                        node_modules/.bin/serve -s build &
-                        sleep 10
-                        npx playwright test --reporter=html
+                            npm install serve
+                            node_modules/.bin/serve -s build &
+                            sleep 10
+                            npx playwright test --reporter=html
                         '''
                     }
+
                     post {
                         always {
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Local', reportTitles: '', useWrapperFileDirectly: true])
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: false,
+                                keepAll: false,
+                                reportDir: 'playwright-report',
+                                reportFiles: 'index.html',
+                                reportName: 'Playwright Local',
+                                useWrapperFileDirectly: true
+                            ])
                         }
                     }
                 }
             }
         }
 
-        stage('Deploy staging'){
+        stage('Deploy staging') {
             agent {
                 docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
+
             steps {
                 sh '''
                     npm install netlify-cli@20.1.1 node-jq
                     node_modules/.bin/netlify --version
                     echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
                     node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json       
+                    node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
                 '''
+
                 script {
-                    env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json", returnStdout: true)
+                    env.STAGING_URL = sh(
+                        script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json",
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Staging URL: ${env.STAGING_URL}"
                 }
             }
         }
 
-        stage('Staging E2E'){
+        stage('Staging E2E') {
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -110,13 +137,21 @@ pipeline {
 
             steps {
                 sh '''
-                  npx playwright test --reporter=html
+                    npx playwright test --reporter=html
                 '''
             }
 
             post {
                 always {
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'Staging-report', reportFiles: 'index.html', reportName: 'Playwright E2E', reportTitles: '', useWrapperFileDirectly: true])
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: false,
+                        reportDir: 'playwright-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Staging E2E',
+                        useWrapperFileDirectly: true
+                    ])
                 }
             }
         }
@@ -124,13 +159,14 @@ pipeline {
         stage('Approval') {
             steps {
                 timeout(time: 15, unit: 'MINUTES') {
-                    input message: 'Do you wish to deploy to production?', ok: 'Yes, I am sure!'
+                    input message: 'Do you wish to deploy to production?',
+                          ok: 'Yes, I am sure!'
                 }
             }
         }
-    
+
         stage('Deploy prod') {
-            agent { 
+            agent {
                 docker {
                     image 'node:18-alpine'
                     reuseNode true
@@ -148,7 +184,7 @@ pipeline {
             }
         }
 
-        stage('Prod E2E'){
+        stage('Prod E2E') {
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -162,16 +198,24 @@ pipeline {
 
             steps {
                 sh '''
-                  npx playwright test --reporter=html
-                  ls -la playwright-report
+                    npx playwright test --reporter=html
+                    ls -la playwright-report
                 '''
             }
 
             post {
                 always {
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Prod E2E', reportTitles: '', useWrapperFileDirectly: true])
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: false,
+                        reportDir: 'playwright-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Prod E2E',
+                        useWrapperFileDirectly: true
+                    ])
                 }
             }
-        } 
+        }
     }
 }
