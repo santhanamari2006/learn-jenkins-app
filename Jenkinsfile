@@ -111,7 +111,6 @@ pipeline {
             steps {
                 sh '''
                   npx playwright test --reporter=html
-                  ls -la playwright-report
                 '''
             }
 
