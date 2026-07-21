@@ -110,7 +110,7 @@ pipeline {
             }
         }
 
-        /* stage('Deploy staging') {
+        stage('Deploy staging') {
             agent {
                 docker {
                     image 'my-playwright'
@@ -182,7 +182,7 @@ pipeline {
                     ])
                 }
             }
-        }*/
+        }
     }
 }
 
