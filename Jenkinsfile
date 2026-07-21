@@ -140,7 +140,7 @@ pipeline {
             }
 
             environment {
-                CI_ENVIRONMENT_URL = 'https://aquamarine-granita-f338a2.netlify.app'
+                CI_ENVIRONMENT_URL = 'https://lucent-licorice-324942.netlify.app'
             }
 
             steps {
