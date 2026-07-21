@@ -19,6 +19,7 @@ pipeline {
             steps {
                 sh '''
                   aws --version
+                  aws s3 ls
                 '''
             }
         }
@@ -109,7 +110,7 @@ pipeline {
             }
         }
 
-        stage('Deploy staging') {
+        /* stage('Deploy staging') {
             agent {
                 docker {
                     image 'my-playwright'
@@ -181,7 +182,7 @@ pipeline {
                     ])
                 }
             }
-        }
+        }*/
     }
 }
 
