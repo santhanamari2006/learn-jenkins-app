@@ -5,10 +5,10 @@
     "family": "LearnJenkinsApp-TaskDefinition-Prod",
     "containerDefinitions": [
         {
-            "name": "learnjenkinsapp",
+            "name": "071604987339.dkr.ecr.ap-south-1.amazonaws.com/learnjenkinsappname:#APP_VERSION#",
             "image": "nginx:1.27-alpine",
             "portMappings": [{
-                "name": "071604987339.dkr.ecr.ap-south-1.amazonaws.com/learnjenkinsappname:#APP_VERSION#",
+                "name": "http",
                 "containerPort": 80,
                 "hostPort": 80,
                 "protocol": "tcp",
